@@ -1,8 +1,6 @@
 package servlets;
 
 import accounts.AccountService;
-import accounts.UserProfile;
-import com.google.gson.Gson;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -17,56 +15,21 @@ public class SignInServlet extends HttpServlet {
         this.accountService = accountService;
     }
 
-    //get logged user profile
-    public void doGet(HttpServletRequest request,
-                      HttpServletResponse response) throws ServletException, IOException {
-        String sessionId = request.getSession().getId();
-        UserProfile profile = accountService.getUserBySessionId(sessionId);
-        if (profile == null) {
-            response.setContentType("text/html;charset=utf-8");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        } else {
-            Gson gson = new Gson();
-            String json = gson.toJson(profile);
-            response.setContentType("text/html;charset=utf-8");
-            response.getWriter().println(json);
-            response.setStatus(HttpServletResponse.SC_OK);
-        }
-    }
-
     //sign in
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
+
         String login = request.getParameter("login");
         String password = request.getParameter("password");
 
-        UserProfile profile = accountService.getUserByLogin(login);
-        if (profile == null) {
-            response.setContentType("text/html;charset=utf-8");
+        boolean loggedIn = accountService.signIn(login, password);
+        response.setContentType("text/html;charset=utf-8");
+        if (loggedIn) {
+            response.getWriter().println("Authorized");
+            response.setStatus(HttpServletResponse.SC_OK);
+        } else {
             response.getWriter().println("Unauthorized");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        } else {
-            response.setContentType("text/html;charset=utf-8");
-            response.getWriter().println("Authorized: " + login);
-            response.setStatus(HttpServletResponse.SC_OK);
         }
-    }
-
-    //sign out
-    public void doDelete(HttpServletRequest request,
-                         HttpServletResponse response) throws ServletException, IOException {
-        String sessionId = request.getSession().getId();
-        UserProfile profile = accountService.getUserBySessionId(sessionId);
-        if (profile == null) {
-            response.setContentType("text/html;charset=utf-8");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        } else {
-            accountService.deleteSession(sessionId);
-            response.setContentType("text/html;charset=utf-8");
-            response.getWriter().println("Goodbye!");
-            response.setStatus(HttpServletResponse.SC_OK);
-        }
-
     }
 }

@@ -1,34 +1,34 @@
 package accounts;
 
-import java.util.HashMap;
-import java.util.Map;
+import dbService.DBException;
+import dbService.DBService;
+
 
 public class AccountService {
-    private final Map<String, UserProfile> loginToProfile;
-    private final Map<String, UserProfile> sessionIdToProfile;
 
-    public AccountService() {
-        loginToProfile = new HashMap<>();
-        sessionIdToProfile = new HashMap<>();
+    private final DBService dbService;
+
+    public AccountService(DBService dbService) {
+        this.dbService = dbService;
     }
 
-    public void addNewUser(UserProfile userProfile) {
-        loginToProfile.put(userProfile.getLogin(), userProfile);
+    public void signUp(String login, String password) {
+        try {
+            dbService.addUser(new UserProfile(login, password));
+        } catch (DBException e) {
+            System.out.println("Can't sing in: " + e.getMessage());
+        }
     }
 
-    public UserProfile getUserByLogin(String login) {
-        return loginToProfile.get(login);
+    public boolean signIn(String login, String password) {
+        try {
+            UserProfile profile = dbService.getUser(login);
+            return profile != null && profile.getPassword().equals(password);
+        } catch (DBException e) {
+            System.out.println("Can't sing in: " + e.getMessage());
+            return false;
+        }
     }
 
-    public UserProfile getUserBySessionId(String sessionId) {
-        return sessionIdToProfile.get(sessionId);
-    }
 
-    public void addSession(String sessionId, UserProfile userProfile) {
-        sessionIdToProfile.put(sessionId, userProfile);
-    }
-
-    public void deleteSession(String sessionId) {
-        sessionIdToProfile.remove(sessionId);
-    }
 }
